@@ -1,4 +1,4 @@
-CFLAGS = -O3
+CFLAGS = -O3 -lm
 CC = gcc
 MCC = mpicc
 
@@ -7,8 +7,8 @@ all: build
 MM_PARALLEL_OBJS=mm-parallel.o MyMPI.o
 
 build: mm-parallel make-matrix mm-serial print-matrix
-mm-parallellist: $(MM_PARALLEL_OBJS)
-	$(MCC) $(MM_PARALLEL_OBJS) -o $@
+mm-parallel: $(MM_PARALLEL_OBJS)
+	$(MCC) $(CFLAGS) $(MM_PARALLEL_OBJS) -o $@
 
 mm-parallel.o: mm-parallel.c
 	$(MCC) $(CFLAGS) $< -c -o $@

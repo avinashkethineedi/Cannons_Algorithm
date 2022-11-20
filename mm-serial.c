@@ -14,7 +14,6 @@ double** load_data(char* filename, int *_r, int *_c)
 		fread(&c, sizeof(int), 1, input_file);
 		size_t elems = (size_t)r*c;
 		size_t size = elems*sizeof(double);
-		//printf("r: %d, c: %d, elems: %ld, size: %ld\n", r, c, elems, size);
 		matrix = (double**)malloc(r*sizeof(double*));
 		matrix[0] = (double*)malloc(size*sizeof(double));
 		for(int i=1;i<r;i++) matrix[i] = matrix[0]+(size_t)i*r;
@@ -59,22 +58,16 @@ int main(int argc, char **argv)
 	matrix_B = load_data(filename2, &Br, &Bc);
 	size_t elems = (size_t)Ar*Bc;
 	size_t size = elems*sizeof(double);
-	//printf("r: %d, c: %d, elems: %ld, size: %ld\n", r, c, elems, size);
 	matrix_C = (double**)malloc(Ar*sizeof(double*));
 	matrix_C[0] = (double*)malloc(size*sizeof(double));
-		for(int i=1;i<Ar;i++) matrix_C[i] = matrix_C[0]+(size_t)i*Ar;
+	for(int i=1;i<Ar;i++) matrix_C[i] = matrix_C[0]+(size_t)i*Ar;
 	for(i=0;i<Ar;i++)
-	{
 		for(j=0;j<Bc;j++)
 		{
 			matrix_C[i][j] = 0;
-			//printf("%0.1lf->", matrix_C[i][j]);
 			for(k=0;k<Ac;k++)
 				matrix_C[i][j] += (matrix_A[i][k] * matrix_B[k][j]);
-			//printf("%0.1lf  ", matrix_C[i][j]);
 		}
-		//printf("\n");
-	}
 	write_data(filename3, matrix_C, Ar, Bc);
 	//free data
 	free(matrix_A[0]);

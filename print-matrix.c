@@ -1,3 +1,4 @@
+//prints matrix data
 #include<stdio.h>
 #include<unistd.h>
 #include<stdlib.h>
@@ -14,7 +15,6 @@ double** load_data(char* filename, int *_r, int *_c)
 		fread(&c, sizeof(int), 1, input_file);
 		size_t elems = (size_t)r*c;
 		size_t size = elems*sizeof(double);
-		//printf("r: %d, c: %d, elems: %ld, size: %ld\n", r, c, elems, size);
 		matrix = (double**)malloc(r*sizeof(double*));
 		matrix[0] = (double*)malloc(size*sizeof(double));
 		for(int i=1;i<r;i++) matrix[i] = matrix[0]+(size_t)i*r;

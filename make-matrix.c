@@ -1,7 +1,4 @@
-/*
-This file creates square matrix and each value is a 64-bit double precision floating point.
-All the values are within the range of l(lower bound) and u(upper bound)
-*/
+//This file creates square matrix and each value is a 64-bit double precision floating point.
 #include<stdio.h>
 #include<unistd.h>
 #include<stdlib.h>

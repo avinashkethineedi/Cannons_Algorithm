@@ -1,3 +1,4 @@
+//Cannon's algorithm
 #include<stdio.h>
 #include<unistd.h>
 #include<stdlib.h>
@@ -143,7 +144,7 @@ int main(int argc, char**argv)
 	{
 		recv_B_from = (col_rank+coordinates[1])%col_size;
 		send_B_to = (col_rank-coordinates[1])<0?col_size+col_rank-coordinates[1]:col_rank-coordinates[1];
-		MPI_Sendrecv(matrixB[0], subBr*subBc, MPI_DOUBLE, send_B_to, 0, bufferB[0], subBr*subBc, MPI_DOUBLE, recv_B_from, 0, col_comm, MPI_STATUS_IGNORE);	
+		MPI_Sendrecv(matrixB[0], subBr*subBc, MPI_DOUBLE, send_B_to, 0, bufferB[0], subBr*subBc, MPI_DOUBLE, recv_B_from, 0, col_comm, MPI_STATUS_IGNORE);
 		temp = bufferB; bufferB = matrixB; matrixB = temp;
 	}
 	//initialise C

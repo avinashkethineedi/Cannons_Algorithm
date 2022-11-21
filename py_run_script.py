@@ -1,5 +1,5 @@
+#python automation
 import os
-
 matrix_size = [2520*i for i in range(1,5)]
 ranks = [i**2 for i in range(2,11)]
 print(matrix_size)

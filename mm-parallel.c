@@ -90,9 +90,8 @@ int main(int argc, char**argv)
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	char *filename1 = argc >= 2? strdup(argv[1]):"default-matrix-file1.dat",
 		*filename2 = argc >= 3? strdup(argv[2]):"default-matrix-file2.dat",
-		*filename3 = argc == 4? strdup(argv[3]):"p_output-matrix-file.dat";
+		*filename3 = argc == 4? strdup(argv[3]):"output-matrix-file.dat";
 	grid_sz = (int)sqrt(size);
-	if(!rank) printf("input file1: %s\ninput file2: %s\noutput file: %s\n", filename1, filename2, filename3);
 	int Ar, Ac, Br, Bc, subAr, subAc, subBr, subBc, i;
 	//create sub communicators
 	int dimsizes[2], wraparound[2], coordinates[2], free_coords[2], reorder = 1, my_grid_rank;
@@ -103,7 +102,7 @@ int main(int argc, char**argv)
 	MPI_Comm_rank(grid_comm, &my_grid_rank);
 	MPI_Cart_coords(grid_comm, my_grid_rank, 2, coordinates);
 	//-------------------------
-	double **matrixA, *storageA, **matrixB, *storageB, **matrixC, **bufferA, **bufferB, **temp;
+	double **matrixA, *storageA, **matrixB, *storageB, **matrixC, **bufferA, **bufferB, **temp, time;
 	read_checkerboard_matrix(filename1, (void***)&matrixA, (void**)&storageA, MPI_DOUBLE, &Ar, &Ac, grid_comm);
 	read_checkerboard_matrix(filename2, (void***)&matrixB, (void**)&storageB, MPI_DOUBLE, &Br, &Bc, grid_comm);
 	subAr = Ar/grid_sz;
@@ -130,6 +129,8 @@ int main(int argc, char**argv)
 	bufferA = alloc_2d_double(subAr, subAc);
 	bufferB = alloc_2d_double(subBr, subBc);
 	matrixC = alloc_2d_double(subAr, subBc);
+	MPI_Barrier(MPI_COMM_WORLD);
+	time = MPI_Wtime();
 	//initial aligment
 	if(coordinates[0])
 	{
@@ -152,7 +153,7 @@ int main(int argc, char**argv)
 	recv_B_from = (col_rank+1)%col_size;
 	send_A_to = !row_rank?row_size-1:row_rank-1;
 	send_B_to = !col_rank?col_size-1:col_rank-1;
-	MPI_Barrier(grid_comm);
+	//MPI_Barrier(grid_comm);
 	for(i=0;i<grid_sz;i++)
 	{
 		submatmul(matrixC, matrixA, matrixB, subAr, subAc, subBc);
@@ -162,6 +163,25 @@ int main(int argc, char**argv)
 		MPI_Sendrecv(matrixB[0], subBr*subBc, MPI_DOUBLE, send_B_to, 0, bufferB[0], subBr*subBc, MPI_DOUBLE, recv_B_from, 0, col_comm, MPI_STATUS_IGNORE);
 		temp = bufferA; bufferA = matrixA; matrixA = temp;
 		temp = bufferB; bufferB = matrixB; matrixB = temp;
+	}
+	//MPI_Barrier(MPI_COMM_WORLD);
+	time = MPI_Wtime() - time;
+	//stats-------------
+	double min_time = 0, max_time = 0, avg_time = 0;
+	MPI_Reduce(&time, &min_time, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&time, &max_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&time, &avg_time, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	avg_time /= size;
+	printf("rank: %d time: %lf\n", rank, time);
+	if(!rank)
+	{
+		FILE * fp_stats;
+		fp_stats = fopen("stats.txt","a+");
+		if (fp_stats != NULL)
+		{
+			fprintf(fp_stats, "npes: %d, A:(%d x %d), B:(%d x %d), C:(%d x %d)\n", size, Ar, Ac, Br, Bc, Ar, Bc);
+			fprintf(fp_stats, "time (min: %lf s, max: %lf s, avg: %lf s)\n\n\n", min_time, max_time, avg_time);
+		}
 	}
 	write_matrix_data(filename3, (void**)matrixC, MPI_DOUBLE, Ar, Bc, grid_comm);
 	//free data
